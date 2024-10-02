@@ -12,20 +12,35 @@ CREATE TABLE SalesFact(
 	FOREIGN KEY (CustomerKey) REFERENCES CustomerDim (CustomerKey)
 );
 
-CREATE TABLE DateDim(
-	DateKey INT PRIMARY KEY,
-	OrderDate TEXT,
-	Quarter TEXT AS
+CREATE TABLE "DateDim" (
+	"DateKey"	INT,
+	"OrderDate"	TEXT,
+	"Quarter"	TEXT GENERATED ALWAYS AS (
+		CASE 
+			WHEN CAST("Month" AS INTEGER) BETWEEN 1 AND 3 THEN '1' 
+			WHEN CAST("Month" AS INTEGER) BETWEEN 4 AND 6 THEN '2' 
+			WHEN CAST("Month" AS INTEGER) BETWEEN 7 AND 9 THEN '3' 
+			ELSE '4' 
+		END),
+		
+	"Month"	TEXT GENERATED ALWAYS AS 
 		(
 			CASE 
-				WHEN CAST (substr(OrderDate, 6, 2) AS INTEGER) BETWEEN 1 AND 3 THEN '01'
-				WHEN CAST (substr(OrderDate, 6, 2) AS INTEGER) BETWEEN 4 AND 6 THEN '02'
-				WHEN CAST (substr(OrderDate, 6, 2) AS INTEGER) BETWEEN 7 AND 9 THEN '03'
-				ELSE '04'
+				WHEN substr("OrderDate", 2, 1) = '/' THEN substr("OrderDate", 1, 1) 
+				ELSE substr("OrderDate", 1, 2) 
 			END
 		),
-	Month TEXT AS (substr(OrderDate, 6, 2)),
-	Year TEXT AS (substr(OrderDate, 1, 4))
+		
+	"Year" TEXT GENERATED ALWAYS AS 
+		(
+			CASE
+				WHEN substr("OrderDate", 4, 1) = '/' THEN substr("OrderDate", 5, 4)
+				WHEN substr("OrderDate", 5, 1) = '/' THEN substr("OrderDate", 6, 4)
+				ELSE substr("OrderDate", 7, 4) 
+			END
+		),
+		
+	PRIMARY KEY("DateKey")
 );
 
 CREATE TABLE ProductDim(
